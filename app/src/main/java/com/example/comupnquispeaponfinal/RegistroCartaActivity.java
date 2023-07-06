@@ -1,18 +1,24 @@
 package com.example.comupnquispeaponfinal;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import  android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,7 +32,11 @@ import com.example.comupnquispeaponfinal.Utilies.RetrofiU;
 
 import java.io.ByteArrayOutputStream;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RegistroCartaActivity extends AppCompatActivity {
     private static final String urlFotoApi= "https://demo-upn.bit2bittest.com/";
@@ -65,8 +75,8 @@ public class RegistroCartaActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 String nombre = cartanombre.getText().toString();
-                int ataque = Integer.parseInt(puntosAtaque.getText().toString());
-                int defensa = Integer.parseInt(puntosDefensa.getText().toString());
+                String ataquexd = puntosAtaque.getText().toString();
+                String defensaxd = puntosDefensa.getText().toString();
 
                 //Crear un service del repository
                 AppDatabase database = AppDatabase.getInstance(context);
@@ -80,12 +90,12 @@ public class RegistroCartaActivity extends AppCompatActivity {
                 carta.setId(lastId + 1);
                 //Llenar
                 carta.setNombre(nombre);
-                carta.setPuntosdeataque(ataque);
-                carta.setPuntosdedefensa(defensa);
-                carta.setDuelistaid(idDuelista+"");
+                carta.setPuntosdeataque(ataquexd);
+                carta.setPuntosdedefensa(defensaxd);
+                carta.setIdDuelista(idDuelista+"");
                 carta.setImagen(urlCamara);
-                carta.setLati(latitud+"");
-                carta.setLongi(longitud+"");
+                carta.setLongitud(longitud+"");
+                carta.setLatitud(latitud+"");
 
                 cartasRepoy.create(carta);
 
@@ -130,67 +140,8 @@ public class RegistroCartaActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+  
 
-        if(requestCode == OPEN_CAMERA_REQUEST && resultCode == RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-            ivAvatar.setImageBitmap(photo);
-            //Convertir a base64
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            photo.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            byte[] byteArray = byteArrayOutputStream .toByteArray();
-            String imgBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
-            CartaService.ImageToSave imgB64 = new CartaService().ImageToSave(imgBase64);
-            enviarImagen(imgB64);
-        }
-
-        if(requestCode == OPEN_GALLERY_REQUEST && resultCode == RESULT_OK) {
-            Uri selectedImage = data.getData();
-            String[] filePathColumn = { MediaStore.Images.Media.DATA };
-            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-            cursor.moveToFirst();
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            String picturePath = cursor.getString(columnIndex);
-            cursor.close(); // close cursor
-
-            Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
-            ivAvatar.setImageBitmap(bitmap);
-            //Convertir a base64
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-            byte[] byteArray = byteArrayOutputStream .toByteArray();
-            String imgBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
-            CartasService.ImageToSave imgB64 = new CartasService.ImageToSave(imgBase64);
-            enviarImagen(imgB64);
-        }
-
-    }
-    private void enviarImagen (CartasService.ImageToSave imgB64){
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(urlFotoApi)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        CartasService service = retrofit.create(CartasService.class);
-        Call<CartasService.ImageResponse> call = service.subirImagen(imgB64);
-        call.enqueue(new Callback<CartasService.ImageResponse>() {
-            @Override
-            public void onResponse(Call<CartasService.ImageResponse> call, Response<CartasService.ImageResponse> response) {
-                if(response.isSuccessful()){
-                    Log.i("MAIN_APP", "Si se subió");
-                    Log.i("MAIN_APP", urlFotoApi  + response.body().getUrl());
-                    urlCamara = urlFotoApi + response.body().getUrl();
-                }
-                else{
-                    Log.i("MAIN_APP", "No se subió");
-                }
-            }
-            @Override
-            public void onFailure(Call<CartasService.ImageResponse> call, Throwable t) {
-            }
-        });
-    }
     private void handleOpenCamera() {
         if(checkSelfPermission(Manifest.permission.CAMERA)  == PackageManager.PERMISSION_GRANTED)
         {
@@ -239,7 +190,4 @@ public class RegistroCartaActivity extends AppCompatActivity {
         }
     }
 
-}
-
-    }
 }

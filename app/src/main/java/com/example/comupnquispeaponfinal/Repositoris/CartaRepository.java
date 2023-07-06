@@ -24,6 +24,9 @@ public interface CartaRepository {
     @Query("SELECT * FROM Cartas WHERE sincro = 0")
     List<Cartas> getUnsyncedCarta();
 
+    @Query("SELECT MAX(id) FROM Cartas")
+    int getLastId();
+
     @Update
     void updateCarta(Cartas cartas);
 

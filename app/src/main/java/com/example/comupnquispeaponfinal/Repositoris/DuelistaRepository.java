@@ -19,6 +19,8 @@ public interface DuelistaRepository {
     @Insert
     void create(Duelista duelista);
 
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(List<Duelista> duelistas);
 
