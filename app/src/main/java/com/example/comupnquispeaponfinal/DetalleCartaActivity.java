@@ -4,12 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 
-public class DuelistasDetallesActivity extends AppCompatActivity {
+public class DetalleCartaActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_duelistas_detalles);
+        setContentView(R.layout.activity_detalle_carta);
 
     }
 }

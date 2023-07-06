@@ -13,6 +13,9 @@
         android:theme="@style/Theme.ComupnQuispeAponFinal"
         tools:targetApi="31">
         <activity
+            android:name=".DetalleCartaActivity"
+            android:exported="false" />
+        <activity
             android:name=".DuelistasDetallesActivity"
             android:exported="false" />
         <activity

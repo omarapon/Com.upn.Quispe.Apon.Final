@@ -10,8 +10,8 @@ public class Cartas{
     @PrimaryKey()
     public int id;
 
-    @ColumnInfo(name = "tipo")
-    private String tipo;
+    @ColumnInfo(name = "nombre")
+    private String nombre;
 
     @ColumnInfo(name = "puntosdeataque")
     private String puntosdeataque;
@@ -42,12 +42,13 @@ public class Cartas{
         this.id = id;
     }
 
-    public String getTipo() {
-        return tipo;
+
+    public String getNombre() {
+        return nombre;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
     }
 
     public String getPuntosdeataque() {
