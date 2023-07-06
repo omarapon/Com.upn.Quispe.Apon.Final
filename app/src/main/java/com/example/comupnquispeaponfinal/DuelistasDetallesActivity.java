@@ -44,6 +44,8 @@ public class DuelistasDetallesActivity extends AppCompatActivity {
         TextView tvSincro = findViewById(R.id.dbtnSincro);
         Button bttnRegistrar = findViewById(R.id.dbtnRegistrar);
         Button bttnVerC = findViewById(R.id.dbtnvercarta);
-        
+        tvNombre.setText(duelista.getNombre());
+
+
     }
 }
