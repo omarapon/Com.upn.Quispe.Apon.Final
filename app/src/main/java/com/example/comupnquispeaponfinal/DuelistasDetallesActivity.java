@@ -47,7 +47,7 @@ public class DuelistasDetallesActivity extends AppCompatActivity {
         Button tvSincro = findViewById(R.id.dbtnSincro);
         Button bttnRegistrar = findViewById(R.id.dbtnRegistrar);
         Button bttnVerC = findViewById(R.id.dbtnvercarta);
-        tvNombre.setText(duelista.getNombre());
+        tvNombre.setText(duelista1.getNombre());
         tvSincro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,6 +95,6 @@ public class DuelistasDetallesActivity extends AppCompatActivity {
 
                 }
             }
-            
+
 
 
