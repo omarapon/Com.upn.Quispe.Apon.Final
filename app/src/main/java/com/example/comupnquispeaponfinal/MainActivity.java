@@ -14,9 +14,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button Registrar=findViewById(R.id.btnRegistrar);
+        Button btnRegistrar=findViewById(R.id.btnRegistrar);
+        Button btnListaDuelista=findViewById(R.id.btnLista);
 
-        Registrar.setOnClickListener(new View.OnClickListener() {
+
+        btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent=new Intent(view.getContext(), RegistroDuelista.class);
@@ -24,5 +26,13 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        btnListaDuelista.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(view.getContext(), RegistroDuelista.class);
+                view.getContext().startActivity(intent);
+            }
+        });
+
     }
 }
