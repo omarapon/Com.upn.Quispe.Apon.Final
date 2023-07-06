@@ -18,6 +18,7 @@ import com.example.comupnquispeaponfinal.Clases.Duelista;
 import com.example.comupnquispeaponfinal.Repositoris.DuelistaRepository;
 import com.example.comupnquispeaponfinal.Service.DuelistaService;
 import com.example.comupnquispeaponfinal.Utilies.RetrofiU;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class ListaDuelistaActivity extends AppCompatActivity {
         btnRegistro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent =  new Intent(ListaDuelistaActivity.this, RegistroDuelistaActivity.class);
+                Intent intent =  new Intent(ListaDuelistaActivity.this, RegistroDuelista.class);
                 startActivity(intent);
                 finish();
             }
@@ -91,10 +92,10 @@ public class ListaDuelistaActivity extends AppCompatActivity {
         });
 
         AppDatabase db = AppDatabase.getInstance(context);
-        CuentaRepository repository = db.cuentaRepository();
-        List<Cuenta> users = repository.getAll();
-        Log.i("MAIN_APP: DB", new Gson().toJson(users));
-        mAdapter.setCuentas(users);
+        DuelistaRepository repository = db.duelistaRepository();
+        List<Duelista> duelistas = repository.getAll();
+        Log.i("MAIN_APP: DB", new Gson().toJson(duelistas));
+        mAdapter.setCuentas(duelistas);
         mAdapter.notifyDataSetChanged();
 
     }

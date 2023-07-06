@@ -76,7 +76,7 @@ public class DuelistaAdapter extends RecyclerView.Adapter {
         return item == null ? 0 : 1;
     }
 
-    public void setCuentas(List<Duelista> cuentas) {
+    public void setCuentas(List<Duelista> duelistas) {
         this.duelistas = duelistas;
     }
 
