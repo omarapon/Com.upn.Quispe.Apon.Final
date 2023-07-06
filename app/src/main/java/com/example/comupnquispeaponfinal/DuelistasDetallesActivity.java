@@ -83,7 +83,9 @@ public class DuelistasDetallesActivity extends AppCompatActivity {
         bttnRegistrar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-
+                            Intent intent =  new Intent(DuelistasDetallesActivity.this, RegistroCartaActivity.class);
+                            startActivity(intent);
+                            finish();
                         }
                     });
                     bttnVerC.setOnClickListener(new View.OnClickListener() {

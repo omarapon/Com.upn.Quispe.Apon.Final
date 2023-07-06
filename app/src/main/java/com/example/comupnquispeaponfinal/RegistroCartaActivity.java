@@ -140,7 +140,7 @@ public class RegistroCartaActivity extends AppCompatActivity {
 
     }
 
-  
+
 
     private void handleOpenCamera() {
         if(checkSelfPermission(Manifest.permission.CAMERA)  == PackageManager.PERMISSION_GRANTED)
