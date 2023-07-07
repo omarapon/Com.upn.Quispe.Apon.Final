@@ -24,15 +24,10 @@
             android:layout_height="371dp" />
 
         <Button
-            android:id="@+id/RegistrarCarta"
+            android:id="@+id/VolverC"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Registrar Carta" />
+            android:text="Volver" />
 
-        <Button
-            android:id="@+id/actualizarcarta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Actualizar Carta" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

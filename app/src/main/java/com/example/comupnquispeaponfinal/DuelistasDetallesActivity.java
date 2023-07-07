@@ -44,59 +44,32 @@ public class DuelistasDetallesActivity extends AppCompatActivity {
         Duelista duelista1 = repository.findDuelistaById(position);
 
         TextView tvNombre = findViewById(R.id.tvnombredueslista);
-        Button tvSincro = findViewById(R.id.dbtnSincro);
         Button bttnRegistrar = findViewById(R.id.dbtnRegistrar);
         Button bttnVerC = findViewById(R.id.dbtnvercarta);
         tvNombre.setText(duelista1.getNombre());
-        tvSincro.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!duelista1.getSincro()) {
-                    DuelistaService service = mRetrofit.create(DuelistaService.class);
-                    Duelista cuenta = new Duelista();
-                    cuenta.setNombre(tvNombre.getText().toString());
-                    cuenta.setSincro(true);
-
-                    Call<Duelista> call = service.create(cuenta);
-
-                    call.enqueue(new Callback<Duelista>() {
-                        @Override
-                        public void onResponse(Call<Duelista> call, Response<Duelista> response) {
-                            Log.i("MAIN_APP",  String.valueOf(response.code()));
-
-                            Intent intent =  new Intent(DuelistasDetallesActivity.this, ListaDuelistaActivity.class);
-                            startActivity(intent);
-                            finish();
-
-                        }
-
-                        @Override
-                        public void onFailure(Call<Duelista> call, Throwable t) {
-
-                        }
-                    });
-                }
-            }
-        });
 
 
         bttnRegistrar.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent =  new Intent(DuelistasDetallesActivity.this, RegistroCartaActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    });
-                    bttnVerC.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-
-                        }
-                    });
-
-                }
+            @Override
+            public void onClick(View v) {
+                Intent intent =  new Intent(DuelistasDetallesActivity.this, RegistroCartaActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+                finish();
             }
+        });
+        bttnVerC.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent =  new Intent(DuelistasDetallesActivity.this, ListaCartaActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+    }
+}
 
 
 

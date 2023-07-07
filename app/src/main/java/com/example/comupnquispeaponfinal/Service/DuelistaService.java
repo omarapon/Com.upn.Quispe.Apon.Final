@@ -16,7 +16,7 @@ import retrofit2.http.Query;
 
 public interface DuelistaService {
     @GET("Duelista")
-    Call<List<Duelista>> getAllDuelista(@Query("limit") int limit, @Query("page") int page);
+    Call<List<Duelista>> getAllDuelista(@Query("name") String name, @Query("limit") int limit, @Query("page") int page);
 
     @GET("Duelista/{id}")
     Call<Duelista> findDuelista(@Path("id") int id);
@@ -33,24 +33,4 @@ public interface DuelistaService {
     @POST("Duelista/upload")
     Call<Void> uploadDuelista(@Body List<Duelista> duelistas);
 
-    @POST("image")
-    Call<ImageResponse> subirImagen(@Body ImageToSave imagen);
-
-    class ImageResponse {
-        @SerializedName("url")
-        private String url;
-
-        public String getUrl() {
-            return url;
-        }
-    }
-
-    class ImageToSave {
-        String base64Image;
-
-        public ImageToSave(String base64Image) {
-            this.base64Image = base64Image;
-        }
-
-    }
 }

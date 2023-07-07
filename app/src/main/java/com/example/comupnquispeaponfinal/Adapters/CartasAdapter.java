@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.comupnquispeaponfinal.Clases.Cartas;
 import com.example.comupnquispeaponfinal.DetalleCartaActivity;
+import com.example.comupnquispeaponfinal.MapsActivity;
 import com.example.comupnquispeaponfinal.R;
 import com.squareup.picasso.Picasso;
 
@@ -51,17 +52,23 @@ public class CartasAdapter extends RecyclerView.Adapter {
 
         View view = holder.itemView;
 
-        TextView tvNombre = view.findViewById(R.id.tvNombreCarta);
-        ImageView img = view.findViewById(R.id.ivCarta);
+        TextView NombreC = view.findViewById(R.id.NombreCarta);
+        TextView AtaqueC = view.findViewById(R.id.AtaqueCarta);
+        TextView DefensaC = view.findViewById(R.id.DefensaCarta);
+        ImageView img = view.findViewById(R.id.Cartaimagen);
+
+
+        NombreC.setText(carta.getNombre());
+        AtaqueC.setText("Ataque: " + carta.getPuntosdeataque());
+        DefensaC.setText("Defensa: " + carta.getPuntosdedefensa());
         Picasso.get().load(carta.getImagen())
                 .resize(300, 400) //tamaño específico
                 .into(img);
-        tvNombre.setText(carta.getNombre());
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent =  new Intent(context, DetalleCartaActivity.class);
+                Intent intent =  new Intent(context, MapsActivity.class);
                 intent.putExtra("position", carta.getId());
                 context.startActivity(intent);
             }

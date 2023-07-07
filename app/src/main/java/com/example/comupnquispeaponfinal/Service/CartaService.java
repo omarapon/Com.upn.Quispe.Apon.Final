@@ -17,7 +17,7 @@ import retrofit2.http.Query;
 
 public interface CartaService {
     @GET("Cartas")
-    Call<List<Cartas>> getAllCartas(@Query("limit") int limit, @Query("page") int page);
+    Call<List<Cartas>> getAllCartas(@Query("name") String name, @Query("limit") int limit, @Query("page") int page);
 
     @GET("Cartas/{id}")
     Call<Cartas> findCartas(@Path("id") int id);
@@ -31,10 +31,13 @@ public interface CartaService {
     @DELETE("Cartas/{id}")
     Call<Void> delete(@Path("id") int id);
 
+    @GET("Cartas/{id}")
+    List<List<Cartas>> getCartasByDuelistaId(@Query("name") String name, @Query("limit") int limit, @Query("page") int page, @Path("id") int id);
+
     @POST("Cartas/upload")
     Call<Void> uploadCartas(@Body List<Cartas> cartas);
     @POST("image")
-    Call<DuelistaService.ImageResponse> subirImagen(@Body DuelistaService.ImageToSave imagen);
+    Call<ImageResponse> subirImagen(@Body ImageToSave imagen);
 
     class ImageResponse {
         @SerializedName("url")

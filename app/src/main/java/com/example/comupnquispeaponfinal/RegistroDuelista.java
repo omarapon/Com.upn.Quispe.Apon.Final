@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,9 +14,13 @@ import android.widget.EditText;
 import com.example.comupnquispeaponfinal.BD.AppDatabase;
 import com.example.comupnquispeaponfinal.Clases.Duelista;
 import com.example.comupnquispeaponfinal.Repositoris.DuelistaRepository;
+import com.example.comupnquispeaponfinal.Service.DuelistaService;
 import com.example.comupnquispeaponfinal.Utilies.RetrofiU;
 import com.google.gson.Gson;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class RegistroDuelista extends AppCompatActivity {
@@ -47,25 +52,55 @@ public class RegistroDuelista extends AppCompatActivity {
         btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // llamar a retrofit
-                AppDatabase database = AppDatabase.getInstance(context);
-                DuelistaRepository cuentaRepository = database.duelistaRepository();
 
-                // Obtener el último ID registrado en la base de datos
-                int lastId = cuentaRepository.getLastId();
+                if(!isNetworkConnected()) {
+                    // llamar a retrofit
+                    AppDatabase database = AppDatabase.getInstance(context);
+                    DuelistaRepository cuentaRepository = database.duelistaRepository();
 
-                Duelista duelista = new Duelista();
-                duelista.setId(lastId + 1); // Asignar el nuevo ID incrementado en uno
-                duelista.setNombre(etNombre.getText().toString());
-                duelista.setSincro(false);
+                    // Obtener el último ID registrado en la base de datos
+                    int lastId = cuentaRepository.getLastId();
 
-                cuentaRepository.create(duelista);
-                Log.i("MAIN_APP: DB", new Gson().toJson(duelista));
+                    Duelista duelista = new Duelista();
+                    duelista.setId(lastId + 1); // Asignar el nuevo ID incrementado en uno
+                    duelista.setNombre(etNombre.getText().toString());
+                    duelista.setSincro(false);
+
+                    cuentaRepository.create(duelista);
+                    Log.i("MAIN_APP: DB", new Gson().toJson(duelista));
+
+                }
+                else {
+                    DuelistaService service = mRetrofit.create(DuelistaService.class);
+                    Duelista duelista = new Duelista();
+                    duelista.setNombre(etNombre.getText().toString());
+                    duelista.setSincro(true);
+
+                    Call<Duelista> call = service.create(duelista);
+                    call.enqueue(new Callback<Duelista>() {
+                        @Override
+                        public void onResponse(Call<Duelista> call, Response<Duelista> response) {
+
+                        }
+
+                        @Override
+                        public void onFailure(Call<Duelista> call, Throwable t) {
+
+                        }
+                    });
+
+                }
                 Intent intent = new Intent(RegistroDuelista.this, ListaDuelistaActivity.class);
                 startActivity(intent);
                 finish();
+
             }
         });
 
     }
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+    }
+
 }

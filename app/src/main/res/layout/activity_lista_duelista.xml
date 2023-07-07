@@ -29,12 +29,6 @@
             android:layout_height="wrap_content"
             android:text="Registro de duelista" />
 
-        <Button
-            android:id="@+id/actualizardue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Actualizar duelista" />
-
     </LinearLayout>
 
 </LinearLayout>

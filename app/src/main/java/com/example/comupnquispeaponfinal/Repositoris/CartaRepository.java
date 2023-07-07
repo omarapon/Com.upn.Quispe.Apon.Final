@@ -30,6 +30,9 @@ public interface CartaRepository {
     @Update
     void updateCarta(Cartas cartas);
 
+    @Query("SELECT * FROM Cartas WHERE id = :cartaId")
+    Cartas EncontrarCarta(int cartaId);
+
     @Query("SELECT * FROM Cartas WHERE idDuelista = :idDuelista")
     List<Cartas> getCartaDuelista(int idDuelista);
 

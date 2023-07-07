@@ -7,15 +7,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.comupnquispeaponfinal.Adapters.CartasAdapter;
 import com.example.comupnquispeaponfinal.Adapters.DuelistaAdapter;
 import com.example.comupnquispeaponfinal.BD.AppDatabase;
+import com.example.comupnquispeaponfinal.Clases.Cartas;
 import com.example.comupnquispeaponfinal.Clases.Duelista;
+import com.example.comupnquispeaponfinal.Repositoris.CartaRepository;
 import com.example.comupnquispeaponfinal.Repositoris.DuelistaRepository;
+import com.example.comupnquispeaponfinal.Service.CartaService;
 import com.example.comupnquispeaponfinal.Service.DuelistaService;
 import com.example.comupnquispeaponfinal.Utilies.RetrofiU;
 import com.google.gson.Gson;
@@ -34,8 +39,11 @@ public class ListaDuelistaActivity extends AppCompatActivity {
     RecyclerView mRvListaDuelista;
     boolean mIsLoading = false;
     int mPage = 1;
+    String currentFilter = "";
     List<Duelista> cdata = new ArrayList<>();
     DuelistaAdapter mAdapter = new DuelistaAdapter(cdata, this);
+    List<Cartas> datac = new ArrayList<>();
+    CartasAdapter Adapterc = new CartasAdapter(datac, this);
     Context context = this;
 
     @Override
@@ -45,7 +53,22 @@ public class ListaDuelistaActivity extends AppCompatActivity {
 
         RetrofitD = RetrofiU.build();
         Button btnRegistro = findViewById(R.id.registroduel);
-        Button btnActualizar = findViewById(R.id.actualizardue);
+        AppDatabase db = AppDatabase.getInstance(context);
+        DuelistaRepository repository = db.duelistaRepository();
+        List<Duelista> duelistas = repository.getAll();
+
+        if(!isNetworkConnected()) {
+            Log.i("MAIN_APP: DB", new Gson().toJson(duelistas));
+            mAdapter.setDuelista(duelistas);
+            mAdapter.notifyDataSetChanged();
+        }
+        else {
+            UploadDuelistas(duelistas);
+            loadMore(currentFilter, mPage);
+            uploadToWebService(1);
+            mAdapter.setDuelista(duelistas);
+        }
+
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRvListaDuelista =  findViewById(R.id.rvListaDuelistas);
@@ -69,7 +92,7 @@ public class ListaDuelistaActivity extends AppCompatActivity {
 
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == cdata.size() - 1) {
                         mPage++;
-                        loadMore(mPage);
+                        loadMore(currentFilter, mPage);
                     }
                 }
 
@@ -84,19 +107,76 @@ public class ListaDuelistaActivity extends AppCompatActivity {
             }
         });
 
-        btnActualizar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                uploadToWebService(1);
+    }
+
+
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+    }
+
+
+
+    private void UploadDuelistas(List<Duelista> duelistas){
+
+        for (int i = 0; i<duelistas.size();i++){
+            Duelista duelista = duelistas.get(i);
+            if (!duelista.getSincro()) {
+                DuelistaService service = RetrofitD.create(DuelistaService.class);
+                Duelista aux = new Duelista();
+                aux.setNombre(duelista.getNombre());
+                aux.setSincro(true);
+
+                Call<Duelista> call = service.create(aux);
+
+                call.enqueue(new Callback<Duelista>() {
+                    @Override
+                    public void onResponse(Call<Duelista> call, Response<Duelista> response) {
+                        Log.i("MAIN_APP",  String.valueOf(response.code()));
+                    }
+
+                    @Override
+                    public void onFailure(Call<Duelista> call, Throwable t) {
+
+                    }
+                });
             }
-        });
+        }
+
 
         AppDatabase db = AppDatabase.getInstance(context);
-        DuelistaRepository repository = db.duelistaRepository();
-        List<Duelista> duelistas = repository.getAll();
-        Log.i("MAIN_APP: DB", new Gson().toJson(duelistas));
-        mAdapter.setCuentas(duelistas);
-        mAdapter.notifyDataSetChanged();
+        CartaRepository repository = db.cartaRepository();
+        List<Cartas> cartas = repository.getAll();
+
+        for (int i = 0; i<cartas.size();i++){
+            Cartas carta = cartas.get(i);
+            if (!carta.getSincro()) {
+                CartaService service = RetrofitD.create(CartaService.class);
+                Cartas aux = new Cartas();
+                aux.setNombre(carta.getNombre());
+                aux.setPuntosdeataque(carta.getPuntosdeataque());
+                aux.setPuntosdedefensa(carta.getPuntosdedefensa());
+                aux.setLatitud(carta.getLatitud());
+                aux.setLongitud(carta.getLongitud());
+                aux.setImagen(carta.getImagen());
+                aux.setIdDuelista(carta.getIdDuelista());
+                aux.setSincro(true);
+
+                Call<Cartas> call = service.create(aux);
+
+                call.enqueue(new Callback<Cartas>() {
+                    @Override
+                    public void onResponse(Call<Cartas> call, Response<Cartas> response) {
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<Cartas> call, Throwable t) {
+
+                    }
+                });
+            }
+        }
 
     }
 
@@ -106,7 +186,7 @@ public class ListaDuelistaActivity extends AppCompatActivity {
         db.clearAllTables();
 
         DuelistaService service = RetrofitD.create(DuelistaService.class);
-        service.getAllDuelista(100, nextPage).enqueue(new Callback<List<Duelista>>() {
+        service.getAllDuelista(currentFilter, 50, nextPage).enqueue(new Callback<List<Duelista>>() {
             @Override
             public void onResponse(Call<List<Duelista>> call, Response<List<Duelista>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -117,7 +197,7 @@ public class ListaDuelistaActivity extends AppCompatActivity {
 
                     // Actualiza los datos en el adaptador y notifica los cambios
                     List<Duelista> newData = repository.getAll();
-                    mAdapter.setCuentas(newData);
+                    mAdapter.setDuelista(newData);
                     mAdapter.notifyDataSetChanged();
                 }
             }
@@ -127,8 +207,34 @@ public class ListaDuelistaActivity extends AppCompatActivity {
                 // Maneja el error de la llamada al servicio MockAPI
             }
         });
+
+
+        CartaService service2 = RetrofitD.create(CartaService.class);
+        service2.getAllCartas(currentFilter, 50, nextPage).enqueue(new Callback<List<Cartas>>() {
+            @Override
+            public void onResponse(Call<List<Cartas>> call, Response<List<Cartas>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Inserta los datos en la base de datos
+                    AppDatabase db = AppDatabase.getInstance(ListaDuelistaActivity.this);
+                    CartaRepository repository = db.cartaRepository();
+                    repository.insertAll(response.body());
+
+                    // Actualiza los datos en el adaptador y notifica los cambios
+                    List<Cartas> newData = repository.getAll();
+                    Adapterc.setCartas(newData);
+                    Adapterc.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Cartas>> call, Throwable t) {
+                // Maneja el error de la llamada al servicio MockAPI
+            }
+        });
+
+
     }
-    private void loadMore(int nextPage) {
+    private void loadMore(String filter, int nextPage) {
         mIsLoading = true;
 
         cdata.add(null);
@@ -136,29 +242,27 @@ public class ListaDuelistaActivity extends AppCompatActivity {
 
         DuelistaService service = RetrofitD.create(DuelistaService.class);
         Log.i("MAIN_APP  Page:", String.valueOf(nextPage));
-        service.getAllDuelista(100, nextPage).enqueue(new Callback<List<Duelista>>() { // Cambia el número de registros por página según tus necesidades
+        service.getAllDuelista(filter, 20, nextPage).enqueue(new Callback<List<Duelista>>() {
             @Override
             public void onResponse(Call<List<Duelista>> call, Response<List<Duelista>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+
+                if(cdata.size() > 0) {
                     cdata.remove(cdata.size() - 1);
                     mAdapter.notifyItemRemoved(cdata.size() - 1);
-
-                    cdata.addAll(response.body());
-                    mAdapter.notifyDataSetChanged();
-                    mIsLoading = false;
-
-                    // Si hay más registros disponibles, cargar la siguiente página
-                    if (response.body().size() >= 100) { // Cambia el número de registros por página según tus necesidades
-                        loadMore(nextPage + 1);
-                    }
                 }
+
+                cdata.addAll(response.body());
+                mAdapter.notifyDataSetChanged();
+                mIsLoading = false;
             }
 
             @Override
             public void onFailure(Call<List<Duelista>> call, Throwable t) {
-                // Manejar error de la llamada al servicio MockAPI
+
             }
         });
+
+
     }
 
 }

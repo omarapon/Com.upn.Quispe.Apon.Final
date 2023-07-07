@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -26,8 +27,10 @@ import android.widget.ImageView;
 
 import com.example.comupnquispeaponfinal.BD.AppDatabase;
 import com.example.comupnquispeaponfinal.Clases.Cartas;
+import com.example.comupnquispeaponfinal.Clases.Duelista;
 import com.example.comupnquispeaponfinal.Repositoris.CartaRepository;
 import com.example.comupnquispeaponfinal.Service.CartaService;
+import com.example.comupnquispeaponfinal.Service.DuelistaService;
 import com.example.comupnquispeaponfinal.Utilies.RetrofiU;
 
 import java.io.ByteArrayOutputStream;
@@ -57,14 +60,13 @@ public class RegistroCartaActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registro_carta);
+
         EditText cartanombre = findViewById(R.id.nombrecartaxd);
         EditText puntosAtaque = findViewById(R.id.puntosdeataqueca);
         EditText puntosDefensa = findViewById(R.id.puntosdedefensaca);
         ivAvatar = findViewById(R.id.imageViewCarta);
 
         Button btnRegistro = findViewById(R.id.RegistrarcartaCar);
-        Button btnubicacion = findViewById(R.id.ubicacioncarta);
-        Button btnCamara = findViewById(R.id.camaracarta);
         Button btnGaleria = findViewById(R.id.imagencarta);
         retrofitC = RetrofiU.build(); //settear mockapi
 
@@ -84,21 +86,43 @@ public class RegistroCartaActivity extends AppCompatActivity {
 
                 // Obtener el último ID registrado en la base de datos para crear uno nuevo
                 int lastId = cartasRepoy.getLastId();
-
-                //Crear un movimiento
                 Cartas carta = new Cartas();
-                carta.setId(lastId + 1);
                 //Llenar
                 carta.setNombre(nombre);
                 carta.setPuntosdeataque(ataquexd);
                 carta.setPuntosdedefensa(defensaxd);
                 carta.setIdDuelista(idDuelista+"");
-                carta.setImagen(urlCamara);
                 carta.setLongitud(longitud+"");
                 carta.setLatitud(latitud+"");
 
-                cartasRepoy.create(carta);
+                if(!isNetworkConnected()) {
+                    //Crear una Carta en la base de datos
+                    carta.setId(lastId + 1);
+                    carta.setImagen("https://i.imgur.com/DvpvklR.png");
+                    carta.setSincro(false);
+                    cartasRepoy.create(carta);
+                }
+                else {
+                    //Crear una Carta en el Mockapi
+                    carta.setSincro(true);
+                    //Como Api funciona con internet, se manda url predeterminado
+                    carta.setImagen(urlCamara);
+                    CartaService service = retrofitC.create(CartaService.class);
 
+                    Call<Cartas> call = service.create(carta);
+
+                    call.enqueue(new Callback<Cartas>() {
+                        @Override
+                        public void onResponse(Call<Cartas> call, Response<Cartas> response) {
+
+                        }
+
+                        @Override
+                        public void onFailure(Call<Cartas> call, Throwable t) {
+
+                        }
+                    });
+                }
 
                 Intent intent =  new Intent(RegistroCartaActivity.this, ListaDuelistaActivity.class);
                 startActivity(intent);
@@ -107,13 +131,6 @@ public class RegistroCartaActivity extends AppCompatActivity {
             }
         });
 
-        btnCamara.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                handleOpenCamera();
-                obtenerCoordenadas(); //para cargar coodenadas
-            }
-        });
         btnGaleria.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,43 +145,67 @@ public class RegistroCartaActivity extends AppCompatActivity {
             }
         });
 
-
-        btnubicacion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent =  new Intent(RegistroCartaActivity.this, ListaDuelistaActivity.class);
-                startActivity(intent);
-                finish();
-            }
-        });
-
     }
 
-
-
-    private void handleOpenCamera() {
-        if(checkSelfPermission(Manifest.permission.CAMERA)  == PackageManager.PERMISSION_GRANTED)
-        {
-            // abrir camara
-            Log.i("MAIN_APP", "Tiene permisos para abrir la camara");
-            abrirCamara();
-        } else {
-            // solicitar el permiso
-            Log.i("MAIN_APP", "No tiene permisos para abrir la camara, solicitando");
-            String[] permissions = new String[] {Manifest.permission.CAMERA};
-            requestPermissions(permissions, 1000);
-        }
-    }
-
-    private void abrirCamara() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(intent, OPEN_CAMERA_REQUEST);
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
     }
 
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, OPEN_GALLERY_REQUEST);
+    }
+
+    private void enviarImagen (CartaService.ImageToSave imgB64){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(urlFotoApi)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        CartaService service = retrofit.create(CartaService.class);
+        Call<CartaService.ImageResponse> call = service.subirImagen(imgB64);
+        call.enqueue(new Callback<CartaService.ImageResponse>() {
+            @Override
+            public void onResponse(Call<CartaService.ImageResponse> call, Response<CartaService.ImageResponse> response) {
+                if(response.isSuccessful()){
+                    Log.i("MAIN_APP", "Si se subió");
+                    Log.i("MAIN_APP", urlFotoApi  + response.body().getUrl());
+                    urlCamara = urlFotoApi + response.body().getUrl();
+                }
+                else{
+                    Log.i("MAIN_APP", "No se subió");
+                }
+            }
+            @Override
+            public void onFailure(Call<CartaService.ImageResponse> call, Throwable t) {
+            }
+        });
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == OPEN_GALLERY_REQUEST && resultCode == RESULT_OK) {
+            Uri selectedImage = data.getData();
+            String[] filePathColumn = { MediaStore.Images.Media.DATA };
+            Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+            cursor.moveToFirst();
+            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+            String picturePath = cursor.getString(columnIndex);
+            cursor.close(); // close cursor
+
+            Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
+            ivAvatar.setImageBitmap(bitmap);
+            //Convertir a base64
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream .toByteArray();
+            String imgBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
+            CartaService.ImageToSave imgB64 = new CartaService.ImageToSave(imgBase64);
+            enviarImagen(imgB64);
+        }
+
     }
 
     // ALMACENAR COORDENADAS
